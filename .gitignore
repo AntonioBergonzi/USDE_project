@@ -1,0 +1,6 @@
+/*
+!.gitignore
+!.py
+!.README.md
+!src/
+*.pyc
