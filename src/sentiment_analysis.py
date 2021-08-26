@@ -4,9 +4,12 @@ from tensorflow import keras
 from keras.models import Model, load_model
 from transformers import AutoTokenizer, pipeline, TFDistilBertModel
 from transformers import TFAutoModelForSequenceClassification
-tf.get_logger().setLevel('FATAL') 
-tf.autograph.set_verbosity(1)
+import logging
 from util import progress_bar
+
+logging.getLogger("tensorflow").setLevel(logging.CRITICAL)
+logging.getLogger("keras").setLevel(logging.CRITICAL)
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
 
 class Classifier:
     """
@@ -43,7 +46,6 @@ class Classifier:
         return list(map(lambda x: x-1, predictions)) #the model returns numbers in ranges (-1, 0, 1)
     
     def predict_batch(self, tweet_list, batch = 10):
-
         assert len(tweet_list) > 0 and batch > 1
         if len(tweet_list) <= batch:
             return self.predict(self, tweet_list)
@@ -52,10 +54,10 @@ class Classifier:
         last_element = 0
         for i in range(1, len(tweet_list)):
             if i % batch == 0:
-                print("i: {}, batch: {}".format(i, batch))
+                #print("i: {}, batch: {}".format(i, batch)) TODO: remove
                 batches.append(tweet_list[i-batch :i])
                 last_element = i
-        if last_element != len(tweet_list)-1:
+        if last_element != len(tweet_list):
             batches.append(tweet_list[last_element:])
         for elem in progress_bar(batches, prefix="Progress", suffix="Complete"):
             result.extend(self.predict(elem))

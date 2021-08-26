@@ -5,6 +5,7 @@ from neo4j import GraphDatabase
 class NeoGraph:
 
     def __init__(self, uri, password, timeframe_file_path):
+        print(uri)
         self.driver = GraphDatabase.driver(uri, auth=("neo4j", password)) #used for creating parallel relationships
         self.timeframes = Timeframe.get_timeframes_from_file(timeframe_file_path)
 
@@ -12,8 +13,32 @@ class NeoGraph:
         if not self.account_exists(username):
             with self.driver.session() as session:
                 session.write_transaction(add_entity, username, group)
+        
+    def add_tweet(self, from_profile, to_profile, tweet, sentiment):
+        """
+        Adds a single tweet to the database.
+        Also handles the :TIMEFRAME_OPINION relationships
+        Parameters
+        ----------
+        from_profile: str
+            The handle of the twitter account that posted the tweet
+        to_profile: str
+            The handle of the twitter account that is on the receiving end of the tweet (of course this is not present in every tweet scraped, the graph stores only the tweets that have the to_profile though, as it enstablishes a relationship)
+        tweet: str
+            The json representation of the tweet, must contain date and text of the tweet
+        sentiment: integer
+            1 if the sentiment is positive, -1 if it's not positive and 0 if it's neutral 
+        """
+        if not self.tweet_exists(from_profile, to_profile, tweet["id"]):
+            valid_timeframes = self.get_valid_timeframes(tweet["date"])
+            for timeframe_name in map(lambda x: x.get_name(), valid_timeframes):
+                self.add_tweeted_about(from_profile, to_profile, tweet["tweet"], tweet["date"], tweet["link"], tweet["id"], sentiment)
+                if self.check_existance_timeframe_opinion(from_profile, to_profile, timeframe_name):
+                    self.update_timeframe_opinion(from_profile, to_profile, timeframe_name, sentiment)
+                else:
+                    self.create_timeframe_opinion(from_profile, to_profile, timeframe_name, sentiment)
         else:
-            print("WARNING: entity {} is already in the graph".format(username))
+            print("Tweet with id {} from {} to {} is already present in the db".format(tweet["id"], from_profile, to_profile))
 
     def account_exists(self, username):
         """
@@ -24,10 +49,16 @@ class NeoGraph:
         if len(result) > 0:
             return True
         return False
-    
+
+    def get_valid_timeframes(self, date):
+        result = []
+        for timeframe in self.timeframes:
+            if timeframe.includes(date):
+                result.append(timeframe)
+        return result
     def tweet_exists(self, from_profile, to_profile ,tweet_id):
         with self.driver.session() as session:
-            result = session.read_transaction(check_tweet_existance, from_profile, to_profile, tweet["id"])
+            result = session.read_transaction(check_tweet_existance, from_profile, to_profile, tweet_id)
         if len(result) > 0:
             return True
         return False
@@ -93,11 +124,23 @@ def update_timeframe_opinion(tx, from_profile, to_profile, timeframe_name, senti
         SET r.number_tweets = r.number_tweets + 1"
     , from_profile=from_profile, to_profile=to_profile, sentiment=sentiment, timeframe_name=timeframe_name)
 
+def add_entity(tx, name, group):
+    tx.run("CREATE (n:Account {username: $username, group: $group})", username=name, group=group)
 
-
-
-
-
+if __name__ == "__main__":
+    print(os.getcwd())
+    graph = NeoGraph("neo4j://localhost:7687", "1234", "data/timeframe_example.json")
+    
+    from util import Entity
+    import json
+    for entity in Entity.get_entities("data/user_set_example.json"):
+        graph.create_entity(entity.get_profile_name(), entity.get_group())
+    tweet1 = '{"id": 1342019539488432127, "date": "2020-12-24", "tweet": "La mia intervista di ieri sera a #portaaporta ➡️  https://t.co/kldkEeYDDA", "link": "https://twitter.com/GiuseppeConteIT/status/1342019539488432129", "quote_url": "", "retweet": false}'
+    tweet2 = '{"id": 1341813611115798533, "date": "2020-12-23", "tweet": "Il prossimo ritorno in Italia di #ChicoForti è davvero una bella notizia. Un ringraziamento al Ministro @luigidimaio e a tutto il corpo diplomatico italiano per la determinazione e l\'impegno che hanno permesso di raggiungere questo importante risultato.", "link": "https://twitter.com/GiuseppeConteIT/status/1341813611115798533", "quote_url": "", "retweet": false}'
+    tweet3 = '{"id": 1341763611560165378, "date": "2020-12-23", "tweet": "Questa sera sarò ospite a #PortaaPorta. Dalle 23.20 su Rai Uno.  https://t.co/NFV8Kaly5p", "link": "https://twitter.com/GiuseppeConteIT/status/1341763611560165378", "quote_url": "", "retweet": false}'
+    graph.add_tweet("GiuseppeConteIT","matteosalvinimi", json.loads(tweet1), -1.0)
+    graph.add_tweet("GiuseppeConteIT","matteosalvinimi", json.loads(tweet2), 0.0)
+    graph.add_tweet("GiuseppeConteIT","luigidimaio", json.loads(tweet3),1.0)
 
 
 
