@@ -48,7 +48,7 @@ class Classifier:
     def predict_batch(self, tweet_list, batch = 10):
         assert len(tweet_list) > 0 and batch > 1
         if len(tweet_list) <= batch:
-            return self.predict(self, tweet_list)
+            return self.predict(tweet_list)
         batches = []
         result = []
         last_element = 0

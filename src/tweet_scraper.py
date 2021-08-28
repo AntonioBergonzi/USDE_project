@@ -16,6 +16,7 @@ def scrape_tweets(accounts, path_archive = "../data/tweet_archive", save_all_fie
 
 
 def scrape_account_tweets(account, path_archive, save_all_fields = False):
+    path_archive = "/home/antonio/Desktop/USDE/USDE_project/data/tweet_archive" #TODO: change to absolute path 
     path = os.path.join(path_archive, account + "_tweets.json")
     if os.path.exists(path):
         print(f"File {path} already exists, deleting it otherwise twint will append the contents creating doubles")
@@ -28,6 +29,7 @@ def scrape_account_tweets(account, path_archive, save_all_fields = False):
     o.Output = path
     o.Hide_output = True
     o.Store_json = True
+    print("Printing user object: {}".format(o))
     twint.run.Search(o)
     return path
 
