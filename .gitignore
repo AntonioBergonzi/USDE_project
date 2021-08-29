@@ -5,5 +5,5 @@
 !src/
 !.env.example
 !requirements.txt
-!data/tweet_archive/
+!data/
 *.pyc

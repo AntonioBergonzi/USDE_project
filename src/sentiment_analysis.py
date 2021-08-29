@@ -12,7 +12,7 @@ logging.getLogger("transformers").setLevel(logging.CRITICAL)
 class Classifier:
     """
     Class to allow the classification of tweets, it uses a pre-trained model trained on italian words, so to make predictions in english another class similar to this should be created .
-    The model is fine-tuned from Bert using italian tweets about football, and since in Italy the difference between football and politics is quite small so we ought to be all right, especially since the objective of the project is not to train a Neural Network.
+    The model is fine-tuned from Bert using italian tweets about football, and since in Italy the difference between football and politics is quite small we ought to be all right
     """ 
     def __init__(self):
         #download and instantiate the model
@@ -58,13 +58,14 @@ class Classifier:
                 last_element = i
         if last_element != len(tweet_list):
             batches.append(tweet_list[last_element:])
-        #for elem in progress_bar(batches, prefix="Progress", suffix="Complete"): #TODO: modify
         for i in range(len(batches)):
             print("Currently analyzing batch {} of {}".format(i+1, len(batches)))
             result.extend(self.predict(batches[i]))
         return result
             
-            
+    """
+    Analyses all the tweets in the dictionary(dict[tweet_id]=text_of_the_tweet) and then returns another dictionary, with the sentiments (may be one of the following, from best to worst: -1, 0, 1)
+    """  
     def analyse_dict(self, tweet_dict):
         tweet_ids = tweet_dict.keys()
         tweet_to_evaluate = []
@@ -76,11 +77,4 @@ class Classifier:
             evaluated_dict[tweet_id] = prediction
         return evaluated_dict
 
-def number_of_chars(n):
-    assert type(n) == int
-    counter = 0
-    while n >= 1:
-        counter += 1
-        n = n/10
-    return counter
 

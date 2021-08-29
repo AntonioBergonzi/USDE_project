@@ -29,8 +29,8 @@ class NeoGraph:
         """
         if not self.tweet_exists(from_profile, to_profile, tweet["id"]):
             valid_timeframes = self.get_valid_timeframes(tweet["date"])
+            self.add_tweeted_about(from_profile, to_profile, tweet["tweet"], tweet["date"], tweet["link"], tweet["id"], sentiment)
             for timeframe_name in map(lambda x: x.get_name(), valid_timeframes):
-                self.add_tweeted_about(from_profile, to_profile, tweet["tweet"], tweet["date"], tweet["link"], tweet["id"], sentiment)
                 if self.check_existance_timeframe_opinion(from_profile, to_profile, timeframe_name):
                     self.update_timeframe_opinion(from_profile, to_profile, timeframe_name, sentiment)
                 else:
@@ -101,7 +101,7 @@ def tweeted_about(tx, from_profile, to_profile, text, date, link, tweet_id, sent
            from_username=from_profile, to_username=to_profile, text=text, date=date, tweet_id=tweet_id, sentiment=sentiment, link=link
     )
 
-def check_existance_relationship(tx, from_username, to_username, timeframe_name): #TODO: da cambiare nella repo vera (redundant)
+def check_existance_relationship(tx, from_username, to_username, timeframe_name):
     res = []
     results = tx.run("MATCH (n: Account)-[r:TIMEFRAME_OPINION]->(k: Account) WHERE n.username=$from_username AND k.username=$to_username AND r.timeframe_name=$timeframe_name RETURN r.average_sentiment as average_sentiment", from_username=from_username, to_username=to_username, timeframe_name=timeframe_name)
     for r in results:

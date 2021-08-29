@@ -4,10 +4,11 @@ import os
 import preprocessor as p
 p.set_options(p.OPT.URL, p.OPT.EMOJI)
 import json
-from graph_module import NeoGraph
 
 def process_user(path_to_scraped_tweets, entity, entities, sentiment_analysis_classifier, graph):
-    
+    """
+    Given the path to the tweets that were prevously scraped, the entity to process, the list of all the entities (needed to understand to whom the tweets are referred to), the sentiment analisys classifier and the graph, this function inserts the tweets that the entity has made referring to other entities into the neo4j db
+    """    
     file_path = os.path.join(path_to_scraped_tweets, entity.get_profile_name()+"_tweets.json")
     print("Currently processing {}'s tweets".format(entity.get_profile_name()))
     try:
@@ -16,9 +17,10 @@ def process_user(path_to_scraped_tweets, entity, entities, sentiment_analysis_cl
     except:
         print("This file was not found: {}, not adding anything to the database".format(file_path))
         return
-    other_entities = list(filter(lambda x: x.get_profile_name() != entity.get_profile_name(), entities))
+    other_entities = list(filter(lambda x: x.get_profile_name() != entity.get_profile_name(), entities)) #remove the entity that we have to analyse from all the entities
     matching_dict, cache = get_matching_dict(tweet_list, other_entities, preprocessing_function = lambda x: p.clean(x).replace("#", " "))
-    if len(cache) > 0:    
+    if len(cache) > 0:
+        # to get the classification of the tweet we use a dict (so if a tweet contains references to two or more entities it gets analyzed once)    
         analysed_dict = sentiment_analysis_classifier.analyse_dict(cache)        
         
         for temp_entity in Entity.get_entities(os.getenv("USER_SET_FILE")):
