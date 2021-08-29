@@ -3,4 +3,5 @@
 !.py
 !.README.md
 !src/
+!.env.example
 *.pyc

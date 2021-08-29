@@ -37,25 +37,6 @@ def to_append(entity, tweet):
             return True
     return False
 
-if __name__ == "__main__":
-    import util
-    import json
-    
-    with open("data/tweet_archive/matteosalvinimi_tweets.json", "r") as f:
-        tweets = list(map(lambda x: json.loads(x), f.readlines()))
-    entities = util.Entity.get_entities("data/user_set_example.json")
-    
-    match, cache = get_matching_dict(tweets, list(filter(lambda x: x.get_profile_name() != "matteosalvinimi", entities)))
-    print(len(match["robersperanza"]))
-    temp = set()
-    for x in match.keys():
-        for tweet in match[x]:
-            temp.add(tweet["id"])
-            print("Adding {}".format(tweet["id"]))
-    print(len(temp))
-    print(len(cache))
-    for x in list(cache.keys())[:10]:
-        print("{}: {}".format(x, cache[x]))
 
 
 

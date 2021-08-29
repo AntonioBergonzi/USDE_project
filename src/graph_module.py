@@ -5,8 +5,7 @@ from neo4j import GraphDatabase
 class NeoGraph:
 
     def __init__(self, uri, password, timeframe_file_path):
-        print(uri)
-        self.driver = GraphDatabase.driver(uri, auth=("neo4j", password)) #used for creating parallel relationships
+        self.driver = GraphDatabase.driver(uri, auth=("neo4j", password)) #used for creating parallel relationships, the library for python does not allow those
         self.timeframes = Timeframe.get_timeframes_from_file(timeframe_file_path)
 
     def create_entity(self, username, group): 
@@ -126,22 +125,6 @@ def update_timeframe_opinion(tx, from_profile, to_profile, timeframe_name, senti
 
 def add_entity(tx, name, group):
     tx.run("CREATE (n:Account {username: $username, group: $group})", username=name, group=group)
-
-if __name__ == "__main__":
-    print(os.getcwd())
-    graph = NeoGraph("neo4j://localhost:7687", "1234", "data/timeframe_example.json")
-    
-    from util import Entity
-    import json
-    for entity in Entity.get_entities("data/user_set_example.json"):
-        graph.create_entity(entity.get_profile_name(), entity.get_group())
-    tweet1 = '{"id": 1342019539488432127, "date": "2020-12-24", "tweet": "La mia intervista di ieri sera a #portaaporta ➡️  https://t.co/kldkEeYDDA", "link": "https://twitter.com/GiuseppeConteIT/status/1342019539488432129", "quote_url": "", "retweet": false}'
-    tweet2 = '{"id": 1341813611115798533, "date": "2020-12-23", "tweet": "Il prossimo ritorno in Italia di #ChicoForti è davvero una bella notizia. Un ringraziamento al Ministro @luigidimaio e a tutto il corpo diplomatico italiano per la determinazione e l\'impegno che hanno permesso di raggiungere questo importante risultato.", "link": "https://twitter.com/GiuseppeConteIT/status/1341813611115798533", "quote_url": "", "retweet": false}'
-    tweet3 = '{"id": 1341763611560165378, "date": "2020-12-23", "tweet": "Questa sera sarò ospite a #PortaaPorta. Dalle 23.20 su Rai Uno.  https://t.co/NFV8Kaly5p", "link": "https://twitter.com/GiuseppeConteIT/status/1341763611560165378", "quote_url": "", "retweet": false}'
-    graph.add_tweet("GiuseppeConteIT","matteosalvinimi", json.loads(tweet1), -1.0)
-    graph.add_tweet("GiuseppeConteIT","matteosalvinimi", json.loads(tweet2), 0.0)
-    graph.add_tweet("GiuseppeConteIT","luigidimaio", json.loads(tweet3),1.0)
-
 
 
 

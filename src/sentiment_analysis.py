@@ -1,11 +1,9 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from keras.models import Model, load_model
-from transformers import AutoTokenizer, pipeline, TFDistilBertModel
+from transformers import AutoTokenizer
 from transformers import TFAutoModelForSequenceClassification
 import logging
-from util import progress_bar
+import sys
 
 logging.getLogger("tensorflow").setLevel(logging.CRITICAL)
 logging.getLogger("keras").setLevel(logging.CRITICAL)
@@ -45,8 +43,10 @@ class Classifier:
         predictions = np.argmax(predictions[0], axis=1)
         return list(map(lambda x: x-1, predictions)) #the model returns numbers in ranges (-1, 0, 1)
     
+
     def predict_batch(self, tweet_list, batch = 10):
-        assert len(tweet_list) > 0 and batch > 1
+        assert len(tweet_list) > 0 and batch > 1 
+        
         if len(tweet_list) <= batch:
             return self.predict(tweet_list)
         batches = []
@@ -54,13 +54,14 @@ class Classifier:
         last_element = 0
         for i in range(1, len(tweet_list)):
             if i % batch == 0:
-                #print("i: {}, batch: {}".format(i, batch)) TODO: remove
                 batches.append(tweet_list[i-batch :i])
                 last_element = i
         if last_element != len(tweet_list):
             batches.append(tweet_list[last_element:])
-        for elem in progress_bar(batches, prefix="Progress", suffix="Complete"):
-            result.extend(self.predict(elem))
+        #for elem in progress_bar(batches, prefix="Progress", suffix="Complete"): #TODO: modify
+        for i in range(len(batches)):
+            print("Currently analyzing batch {} of {}".format(i+1, len(batches)))
+            result.extend(self.predict(batches[i]))
         return result
             
             
@@ -75,13 +76,11 @@ class Classifier:
             evaluated_dict[tweet_id] = prediction
         return evaluated_dict
 
-
-
-
-
-
-
-
-
-
+def number_of_chars(n):
+    assert type(n) == int
+    counter = 0
+    while n >= 1:
+        counter += 1
+        n = n/10
+    return counter
 
