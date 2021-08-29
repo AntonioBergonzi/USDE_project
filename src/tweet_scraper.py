@@ -1,6 +1,5 @@
 import twint
 import os
-import util
 #takes as input the list of account names, scrapes all the tweets and retweets of those account
 def scrape_tweets(accounts, path_archive = "../data/tweet_archive", save_all_fields=False):
     assert type(accounts) == list

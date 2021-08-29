@@ -1,4 +1,3 @@
-import os
 from util import Timeframe
 from neo4j import GraphDatabase
 
