@@ -1,7 +1,7 @@
 import twint
 import os
 #takes as input the list of account names, scrapes all the tweets and retweets of those account
-def scrape_tweets(accounts, path_archive = "../data/tweet_archive", save_all_fields=False):
+def scrape_tweets(accounts, path_archive, save_all_fields=False):
     assert type(accounts) == list
     #create a directory before start scraping
     path = os.getcwd()
